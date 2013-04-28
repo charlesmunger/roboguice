@@ -1,6 +1,38 @@
 package roboguice.config;
 
+import android.accounts.AccountManager;
 import android.app.*;
+import roboguice.activity.RoboActivity;
+import roboguice.event.EventManager;
+import roboguice.event.ObservesTypeListener;
+import roboguice.event.eventListener.factory.EventListenerThreadingDecorator;
+import roboguice.inject.AccountManagerProvider;
+import roboguice.inject.AssetManagerProvider;
+import roboguice.inject.ContentResolverProvider;
+import roboguice.inject.ContextScope;
+import roboguice.inject.ContextScopedSystemServiceProvider;
+import roboguice.inject.ContextSingleton;
+import roboguice.inject.ExtrasListener;
+import roboguice.inject.FragmentManagerProvider;
+import roboguice.inject.HandlerProvider;
+import roboguice.inject.NullProvider;
+import roboguice.inject.PreferenceListener;
+import roboguice.inject.ResourceListener;
+import roboguice.inject.ResourcesProvider;
+import roboguice.inject.SharedPreferencesProvider;
+import roboguice.inject.SystemServiceProvider;
+import roboguice.inject.ViewListener;
+import roboguice.service.RoboService;
+import roboguice.util.Ln;
+import roboguice.util.Strings;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Key;
+import com.google.inject.Provider;
+import com.google.inject.TypeLiteral;
+import com.google.inject.matcher.Matchers;
+import com.google.inject.name.Names;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -13,7 +45,6 @@ import android.location.LocationManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
-import android.os.Build.VERSION;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.Vibrator;
@@ -23,20 +54,6 @@ import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import com.google.inject.AbstractModule;
-import com.google.inject.Key;
-import com.google.inject.Provider;
-import com.google.inject.TypeLiteral;
-import com.google.inject.matcher.Matchers;
-import com.google.inject.name.Names;
-import roboguice.activity.RoboActivity;
-import roboguice.event.EventManager;
-import roboguice.event.ObservesTypeListener;
-import roboguice.event.eventListener.factory.EventListenerThreadingDecorator;
-import roboguice.inject.*;
-import roboguice.service.RoboService;
-import roboguice.util.Ln;
-import roboguice.util.Strings;
 
 /**
  * A Module that provides bindings and configuration to use Guice on Android.
@@ -55,8 +72,8 @@ import roboguice.util.Strings;
  * @author Mike Burton
  */
 public class DefaultRoboModule extends AbstractModule {
+    //Can't be genericized because doing so introduces a dependency on the support library
     protected static final Class fragmentManagerClass;
-    protected static final Class accountManagerClass;
 
     static {
         Class c = null;
@@ -65,15 +82,6 @@ public class DefaultRoboModule extends AbstractModule {
         } catch( Throwable ignored ) {}
         fragmentManagerClass = c;
     }
-
-    static {
-        Class c = null;
-        try {
-            c = Class.forName("android.accounts.AccountManager");
-        } catch( Throwable ignored ) {}
-        accountManagerClass = c;
-    }
-
 
     protected Application application;
     protected ContextScope contextScope;
@@ -187,13 +195,7 @@ public class DefaultRoboModule extends AbstractModule {
             bind(fragmentManagerClass).toProvider(FragmentManagerProvider.class);
         }
 
-
-        // 2.0 Eclair
-        if( VERSION.SDK_INT>=5 ) {
-            bind(accountManagerClass).toProvider(AccountManagerProvider.class);
-        }
-
-
+        bind(AccountManager.class).toProvider(AccountManagerProvider.class);
     }
 
 }
